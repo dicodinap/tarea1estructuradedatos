@@ -44,10 +44,7 @@ void test_cargarDatos();
 
 int main(int argc, char const *argv[])
 {
-    //LISTA_POLIGONOS lista = NULL;
-    test_verPoligonos();
-    //lista = cargarDatos();
-    //test_verPuntos();
+    cargarDatos();
 	return 0;
 }
 
@@ -146,7 +143,7 @@ LISTA_POLIGONOS cargarDatos() {
     char buffer[255]; // cantidad maxima de caracteres por linea al leer el archivo
     float x, y; // x e y del punto
     int flag = 1; // bool para salir del while
-    short count=  0; 
+    short count = 0; 
     archivo = fopen("poligonos.txt", "r"); // abro el archivo en modo lectura
     if (archivo == NULL) { 
         printf("Error al abrir el archivo\n"); // si el archivo no existe, imprimo error
@@ -154,31 +151,35 @@ LISTA_POLIGONOS cargarDatos() {
     }
     LISTA_POLIGONOS listaPoligono = NULL; // creo la lista de poligonos en null ya qeu no hay ninguno
     fscanf(archivo, "%d", &numeroPuntos); // leo el primer numero del archivo, que es la cantidad de puntos del primer poligono
-    printf("Numero de puntos: %d", numeroPuntos);
-    while (flag) 
+    
+    while (!feof(archivo))
     {   
         LISTA_POLIGONOS listaPoligono = malloc(sizeof(struct s_poligonos)); // reservo la memoria de la lista para agregar el poligono "poligono"
         POLIGONO poligono = crearPoligono();                                // y declarar el siguiente como null
         listaPoligono-> p = poligono;
         listaPoligono->siguiente = NULL;
-
+        int firstTime = 1;
+        printf("Numero de puntos: %d\n", numeroPuntos);
         while (count < numeroPuntos) // leo los puntos del archivo y los agrego al poligono
-        {
+        {   
+            if (firstTime)
+            {
+                fgets(buffer, 255, archivo); // si es la primera vez que leem que lea el 0.0,0.0 pero no se guarda
+                firstTime = 0;
+            }
+            
+            
             fgets(buffer, 255, archivo);
             sscanf(buffer, "%f,%f", &x, &y); 
             agregarPunto(poligono,crearPunto(x,y));
-            printf("Punto: (%f, %f)\n", x, y);
+            printf("Punto: (%f, %f)\n", x, y); // debug el punto para ver si lo lee correctamente
             count++;
         }
         agregarPoligono(listaPoligono, poligono);
-
-        
-        fscanf(archivo, "%d", &numeroPuntos);
-        if (numeroPuntos < 3 || !feof(archivo)) 
-        {
-            flag = 0;
-        }   
+        fscanf(archivo, "%d", &numeroPuntos); // leo el numero de puntos del siguiente poligono
+        count = 0; // reseteo el contador de puntos
     }
+    fclose(archivo); // cierro el archivo
     return listaPoligono;
 }
 POLIGONO mayorPerimetro(LISTA_POLIGONOS lista) {
